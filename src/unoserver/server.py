@@ -389,20 +389,18 @@ class UnoServer:
                 """
                 if indata is not None:
                     indata = indata.data
-
+                    
+                # Fonction interne pour exécuter la conversion avec verrouillage
+                def locked_convert():
+                    with self.lock:  # AJOUT : Un seul thread accède à LibreOffice
+                        return self.conv.convert(
+                            inpath, indata, outpath, convert_to,
+                            filtername, filter_options, update_index,
+                            infiltername, password,
+                        )
+                        
                 with futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(
-                        self.conv.convert,
-                        inpath,
-                        indata,
-                        outpath,
-                        convert_to,
-                        filtername,
-                        filter_options,
-                        update_index,
-                        infiltername,
-                        password,
-                    )
+                    future = executor.submit(locked_convert)
                     try:
                         result = future.result(timeout=self.conversion_timeout)
                     except futures.TimeoutError:
@@ -505,17 +503,15 @@ class UnoServer:
                     olddata = olddata.data
                 if newdata is not None:
                     newdata = newdata.data
+                    
+                def locked_compare():
+                    with self.lock:
+                        return self.comp.compare(
+                            oldpath, olddata, newpath, newdata, outpath, filetype,
+                        )
 
                 with futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(
-                        self.comp.compare,
-                        oldpath,
-                        olddata,
-                        newpath,
-                        newdata,
-                        outpath,
-                        filetype,
-                    )
+                    future = executor.submit(locked_compare)
                 try:
                     result = future.result(timeout=self.conversion_timeout)
                 except futures.TimeoutError:
