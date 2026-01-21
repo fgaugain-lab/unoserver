@@ -62,6 +62,7 @@ class UnoServer:
         self.user_installation = user_installation
         self.conversion_timeout = conversion_timeout
         self.stop_after = stop_after
+        self.lock = threading.Lock()
         self.libreoffice_process = None
         self.xmlrcp_thread = None
         self.xmlrcp_server = None
