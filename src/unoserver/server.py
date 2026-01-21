@@ -409,12 +409,25 @@ class UnoServer:
                             "Conversion timeout, terminating conversion and exiting."
                         )
                         self.conv.local_context.dispose()
-                        self.libreoffice_process.terminate()
+                        self.force_stop_libreoffice()
                         raise
                     else:
                         stop_after()
                         return result
 
+            def force_stop_libreoffice(self):
+                """Forcefully stop LibreOffice if necessary."""
+                if self.libreoffice_process:
+                    logger.warning("Terminating LibreOffice process...")
+                    self.libreoffice_process.terminate()
+                    try:
+                        # On attend un peu que le processus s'arrête proprement
+                        self.libreoffice_process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        logger.critical("LibreOffice refused to stop. Killing it forcefully!")
+                        self.libreoffice_process.kill()
+                        self.libreoffice_process.wait()
+                        
             @server.register_function
             def compare(
                 oldpath=None,
