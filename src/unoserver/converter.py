@@ -244,25 +244,26 @@ class UnoConverter:
                 logger.error(error)
                 raise RuntimeError(error)
 
-            if update_index:
-                # Update document indexes
-                for ii in range(2):
-                    # At first, update Table-of-Contents.
-                    # ToC grows, so page numbers grow too.
-                    # On second turn, update page numbers in ToC.
-                    try:
-                        document.refresh()
-                        indexes = document.getDocumentIndexes()
-                    except AttributeError:
-                        # The document doesn't implement the XRefreshable and/or
-                        # XDocumentIndexesSupplier interfaces
-                        break
-                    else:
-                        for i in range(0, indexes.getCount()):
-                            indexes.getByIndex(i).update()
-
-            # Now do the conversion
+            
             try:
+                if update_index:
+                    # Update document indexes
+                    for ii in range(2):
+                        # At first, update Table-of-Contents.
+                        # ToC grows, so page numbers grow too.
+                        # On second turn, update page numbers in ToC.
+                        try:
+                            document.refresh()
+                            indexes = document.getDocumentIndexes()
+                        except AttributeError:
+                            # The document doesn't implement the XRefreshable and/or
+                            # XDocumentIndexesSupplier interfaces
+                            break
+                        else:
+                            for i in range(0, indexes.getCount()):
+                                indexes.getByIndex(i).update()
+    
+                # Now do the conversion
                 # Figure out document type:
                 import_type = get_doc_type(document)
 
