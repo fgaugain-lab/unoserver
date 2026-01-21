@@ -167,37 +167,38 @@ class UnoComparer:
         new_document = self.desktop.loadComponentFromURL(
             newpath, "_blank", 0, new_props
         )
-        new_type = get_doc_type(new_document)
-
-        old_props = (PropertyValue(Name="Hidden", Value=True),)
-
-        if oldpath:
-            # TODO: Verify that inpath exists and is openable, and that outdir exists, because uno's
-            # exceptions are completely useless!
-
-            # Load the document
-            logger.info(f"Opening file {oldpath}")
-            oldpath = uno.systemPathToFileUrl(os.path.abspath(oldpath))
-            old_props += (PropertyValue(Name="URL", Value=oldpath),)
-            # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
-            old_type = self.type_service.queryTypeByURL(oldpath)
-
-        elif olddata:
-            # The document content is passed in as a byte string
-            old_stream = self.service.createInstanceWithContext(
-                "com.sun.star.io.SequenceInputStream", self.context
-            )
-            old_stream.initialize((uno.ByteSequence(olddata),))
-            old_props += (PropertyValue(Name="InputStream", Value=old_stream),)
-            old_props += (PropertyValue(Name="URL", Value="private:stream"),)
-            old_type = self.type_service.queryTypeByDescriptor(old_props, False)[0]
-
-        old_props += (PropertyValue(Name="NoAcceptDialog", Value=True),)
-
-        logger.info(f"Opening original file {oldpath}")
-
-        # Now do the comparison, then the conversion
+        
         try:
+            new_type = get_doc_type(new_document)
+    
+            old_props = (PropertyValue(Name="Hidden", Value=True),)
+    
+            if oldpath:
+                # TODO: Verify that inpath exists and is openable, and that outdir exists, because uno's
+                # exceptions are completely useless!
+    
+                # Load the document
+                logger.info(f"Opening file {oldpath}")
+                oldpath = uno.systemPathToFileUrl(os.path.abspath(oldpath))
+                old_props += (PropertyValue(Name="URL", Value=oldpath),)
+                # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
+                old_type = self.type_service.queryTypeByURL(oldpath)
+    
+            elif olddata:
+                # The document content is passed in as a byte string
+                old_stream = self.service.createInstanceWithContext(
+                    "com.sun.star.io.SequenceInputStream", self.context
+                )
+                old_stream.initialize((uno.ByteSequence(olddata),))
+                old_props += (PropertyValue(Name="InputStream", Value=old_stream),)
+                old_props += (PropertyValue(Name="URL", Value="private:stream"),)
+                old_type = self.type_service.queryTypeByDescriptor(old_props, False)[0]
+    
+            old_props += (PropertyValue(Name="NoAcceptDialog", Value=True),)
+    
+            logger.info(f"Opening original file {oldpath}")
+    
+            # Now do the comparison, then the conversion
             # Figure out document type of import file:
             # Figure out document type of original import file:
             # check that the two type is same
